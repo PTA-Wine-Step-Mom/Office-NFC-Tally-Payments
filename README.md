@@ -40,8 +40,11 @@ A lightweight, self-hosted fridge drink tally web application designed for Raspb
 
 3. **Build and run with Docker Compose**:
    ```bash
+   docker-compose build --no-cache  # Use --no-cache to ensure clean build
    docker-compose up -d
    ```
+   
+   **⚠️ Windows Users**: If you get line ending errors, see the [Windows Line Ending Issues](#windows-line-ending-issues) troubleshooting section.
 
 4. **Access the application**:
    - Open your browser and navigate to `http://localhost:5000`
@@ -225,28 +228,45 @@ docker-compose up -d
 
 **Cause**: Git on Windows may convert Unix line endings (LF) to Windows line endings (CRLF), causing shell scripts to fail in Linux containers.
 
-**Solution**: This is now automatically fixed by:
-1. `.gitattributes` file enforces LF endings for shell scripts
-2. Dockerfile converts any CRLF to LF during build
+**Solution for EXISTING repository clones**:
 
-**Manual fix** (if needed):
+If you cloned the repository BEFORE the `.gitattributes` file was added, you need to normalize line endings:
+
 ```bash
-# On Windows, before building:
+# Step 1: Configure Git to not convert line endings
 git config core.autocrlf false
-git rm --cached -r .
-git reset --hard
 
-# Or manually convert the file:
-dos2unix app/start.sh  # If you have dos2unix installed
-# Or in Git Bash:
-sed -i 's/\r$//' app/start.sh
-```
+# Step 2: Refresh all files to use correct line endings
+git rm -rf --cached .
+git reset --hard HEAD
 
-Then rebuild the Docker image:
-```bash
+# Step 3: Verify the file has LF endings (optional)
+file app/start.sh
+# Should say "ASCII text executable" NOT "with CRLF"
+
+# Step 4: Rebuild Docker image with --no-cache
 docker-compose build --no-cache
 docker-compose up -d
 ```
+
+**Solution for NEW clones**:
+
+The `.gitattributes` file now automatically enforces LF endings. Just:
+1. Clone the repository
+2. Build: `docker-compose build --no-cache`
+3. Run: `docker-compose up -d`
+
+**Alternative manual fix** (if Git method doesn't work):
+```bash
+# On Windows with Git Bash:
+sed -i 's/\r$//' app/start.sh
+
+# Then rebuild:
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+**Why this works**: The Dockerfile now includes `dos2unix` to convert line endings during build, but you must rebuild with `--no-cache` to ensure the conversion runs.
 
 ### Can't Access from Other Devices
 
