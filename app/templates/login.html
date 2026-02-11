@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Office Drink Tally{% endblock %}
+
+{% block content %}
+<div class="login-page">
+    <div class="card login-card">
+        <h2>Admin Login 🔐</h2>
+        
+        <form method="POST" action="{{ url_for('login') }}" class="login-form">
+            <div class="form-group">
+                <label for="name">Username:</label>
+                <input type="text" 
+                       name="name" 
+                       id="name" 
+                       required 
+                       class="form-control"
+                       placeholder="Enter username"
+                       autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="pin">PIN:</label>
+                <input type="password" 
+                       name="pin" 
+                       id="pin" 
+                       required 
+                       class="form-control"
+                       placeholder="Enter PIN">
+            </div>
+
+            <div class="form-group checkbox-group">
+                <label>
+                    <input type="checkbox" name="remember_me" checked>
+                    Remember me
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-large btn-primary">
+                Login
+            </button>
+        </form>
+
+        <div class="login-info">
+            <p class="text-small">
+                Default admin credentials: admin / 0000
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

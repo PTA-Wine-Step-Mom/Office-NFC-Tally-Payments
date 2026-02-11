@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Success! - Office Drink Tally{% endblock %}
+
+{% block content %}
+<div class="tap-page">
+    <div class="card tap-card success-card">
+        <div class="success-icon">✅</div>
+        <h2>Drink Logged!</h2>
+        <p class="tap-subtitle">{{ user['name'] }}</p>
+        
+        <div class="success-stats">
+            <div class="stat-large">
+                <div class="stat-value">{{ drink_count }}</div>
+                <div class="stat-label">Total Drinks This Period</div>
+            </div>
+            <div class="stat-large">
+                <div class="stat-value">${{ "%.2f"|format(total_cost) }}</div>
+                <div class="stat-label">Total Cost</div>
+            </div>
+        </div>
+
+        <div class="success-actions">
+            <a href="{{ url_for('tap') }}" class="btn btn-large btn-primary">
+                Add Another
+            </a>
+            <a href="{{ url_for('index') }}" class="btn btn-large btn-secondary">
+                Done
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto-redirect to home after 5 seconds
+    setTimeout(function() {
+        window.location.href = "{{ url_for('index') }}";
+    }, 5000);
+</script>
+{% endblock %}

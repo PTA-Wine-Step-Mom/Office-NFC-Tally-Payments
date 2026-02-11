@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Billing Report - Office Drink Tally{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+    <h2>Billing Period Report 📊</h2>
+
+    <div class="card">
+        <h3>Period Details</h3>
+        <div class="period-info">
+            <p><strong>Start Date:</strong> {{ period['start_date'][:10] }}</p>
+            {% if period['end_date'] %}
+            <p><strong>End Date:</strong> {{ period['end_date'][:10] }}</p>
+            {% endif %}
+            <p><strong>Price per Drink:</strong> ${{ "%.2f"|format(period['price_per_drink']) }}</p>
+            <p><strong>Status:</strong> 
+                {% if period['is_closed'] %}
+                    <span class="badge badge-closed">Closed</span>
+                {% else %}
+                    <span class="badge badge-open">Open</span>
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Summary</h3>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-value">{{ total_drinks }}</div>
+                <div class="stat-label">Total Drinks</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">${{ "%.2f"|format(total_revenue) }}</div>
+                <div class="stat-label">Total Revenue</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Per-User Breakdown</h3>
+        {% if user_totals %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Drinks</th>
+                    <th>Total Cost</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in user_totals %}
+                <tr>
+                    <td>{{ user['name'] }}</td>
+                    <td>{{ user['drink_count'] }}</td>
+                    <td>${{ "%.2f"|format(user['total_cost']) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td><strong>Total</strong></td>
+                    <td><strong>{{ total_drinks }}</strong></td>
+                    <td><strong>${{ "%.2f"|format(total_revenue) }}</strong></td>
+                </tr>
+            </tfoot>
+        </table>
+        {% else %}
+        <p>No drinks recorded in this period.</p>
+        {% endif %}
+    </div>
+
+    <div class="admin-actions">
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
+        <button onclick="window.print()" class="btn btn-primary">🖨️ Print Report</button>
+    </div>
+</div>
+{% endblock %}

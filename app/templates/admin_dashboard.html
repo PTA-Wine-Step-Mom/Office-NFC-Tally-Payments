@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Office Drink Tally{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+    <h2>Admin Dashboard 📊</h2>
+
+    <!-- Current Period Summary -->
+    {% if billing_period %}
+    <div class="card">
+        <h3>Current Billing Period</h3>
+        <div class="period-info">
+            <p><strong>Started:</strong> {{ billing_period['start_date'][:10] }}</p>
+            <p><strong>Price per drink:</strong> ${{ "%.2f"|format(billing_period['price_per_drink']) }}</p>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-value">{{ total_drinks }}</div>
+                <div class="stat-label">Total Drinks</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">${{ "%.2f"|format(total_revenue) }}</div>
+                <div class="stat-label">Total Revenue</div>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('close_billing_period') }}" class="inline-form">
+            <input type="hidden" name="price" value="{{ billing_period['price_per_drink'] }}">
+            <button type="submit" class="btn btn-warning" onclick="return confirm('Close this billing period and start a new one?')">
+                Close Period & Generate Report
+            </button>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- User Statistics -->
+    <div class="card">
+        <h3>User Consumption (Current Period)</h3>
+        {% if stats %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Drinks</th>
+                    <th>Total Cost</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stat in stats %}
+                <tr>
+                    <td>{{ stat['name'] }}</td>
+                    <td>{{ stat['drink_count'] }}</td>
+                    <td>${{ "%.2f"|format(stat['total_cost']) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No drinks logged in current period yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- User Management -->
+    <div class="card">
+        <div class="card-header">
+            <h3>User Management</h3>
+            <a href="{{ url_for('add_user') }}" class="btn btn-primary">+ Add User</a>
+        </div>
+        
+        {% if users %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>PIN</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user['name'] }}</td>
+                    <td>{{ user['pin'] }}</td>
+                    <td>
+                        <a href="{{ url_for('edit_user', user_id=user['id']) }}" class="btn btn-small">Edit</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No users yet. Add one to get started!</p>
+        {% endif %}
+    </div>
+
+    <!-- Quick Links -->
+    <div class="admin-actions">
+        <a href="{{ url_for('billing_history') }}" class="btn btn-secondary">📅 Billing History</a>
+        <a href="{{ url_for('admin_settings') }}" class="btn btn-secondary">⚙️ Settings</a>
+    </div>
+</div>
+{% endblock %}
