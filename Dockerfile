@@ -29,4 +29,4 @@ ENV PYTHONUNBUFFERED=1
 EXPOSE 5000
 
 # Initialize database and run application
-CMD ["python", "-c", "from database import init_db; init_db()"] && python app.py
+CMD ["sh", "start.sh"]
