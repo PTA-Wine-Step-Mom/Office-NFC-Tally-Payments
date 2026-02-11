@@ -14,8 +14,10 @@ def sync_session_role():
     if 'user_id' in session and (session.get('is_admin') is None or session.get('role') is None):
         user = query_db('SELECT is_admin, role FROM users WHERE id = ?', [session['user_id']], one=True)
         if user:
-            session['is_admin'] = bool(user['is_admin']) or user.get('role') == 'admin'
-            session['role'] = user.get('role') if 'role' in user.keys() else None
+            # sqlite3.Row objects don't have .get() method, use bracket notation
+            role = user['role'] if 'role' in user.keys() else None
+            session['is_admin'] = bool(user['is_admin']) or role == 'admin'
+            session['role'] = role
 
 @app.template_filter('format_date')
 def format_date(iso_string):
@@ -117,8 +119,10 @@ def tap():
         # Set session if remember me is checked
         if remember:
             session['user_id'] = user['id']
-            session['is_admin'] = bool(user['is_admin']) or user.get('role') == 'admin'
-            session['role'] = user.get('role') if 'role' in user.keys() else None
+            # sqlite3.Row objects don't have .get() method, use bracket notation
+            role = user['role'] if 'role' in user.keys() else None
+            session['is_admin'] = bool(user['is_admin']) or role == 'admin'
+            session['role'] = role
             session.permanent = True
     
     # Get current billing period
@@ -166,8 +170,10 @@ def login():
         
         if user:
             session['user_id'] = user['id']
-            session['is_admin'] = bool(user['is_admin']) or user.get('role') == 'admin'
-            session['role'] = user.get('role') if 'role' in user.keys() else None
+            # sqlite3.Row objects don't have .get() method, use bracket notation
+            role = user['role'] if 'role' in user.keys() else None
+            session['is_admin'] = bool(user['is_admin']) or role == 'admin'
+            session['role'] = role
             if remember:
                 session.permanent = True
             return redirect(url_for('index'))

@@ -49,7 +49,9 @@ def admin_required(f):
         user = query_db('SELECT is_admin, role FROM users WHERE id = ?', 
                        [session['user_id']], one=True)
         # Check both is_admin (legacy) and role (new) fields
-        if not user or (not user['is_admin'] and user.get('role') != 'admin'):
+        # sqlite3.Row objects don't have .get() method, use bracket notation
+        role = user['role'] if user and 'role' in user.keys() else None
+        if not user or (not user['is_admin'] and role != 'admin'):
             return "Unauthorized", 403
         
         return f(*args, **kwargs)
