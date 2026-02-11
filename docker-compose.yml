@@ -7,8 +7,6 @@ services:
     volumes:
       # Persist database
       - ./data:/app/data
-      # Mount database file
-      - drink-db:/app
     environment:
       # Generate a secure secret key - CHANGE THIS IN PRODUCTION!
       - SECRET_KEY=${SECRET_KEY:-change-this-secret-key-in-production}
@@ -20,7 +18,3 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-
-volumes:
-  drink-db:
-    driver: local
