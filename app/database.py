@@ -13,6 +13,8 @@ def init_db():
             name TEXT NOT NULL UNIQUE,
             pin TEXT NOT NULL,
             is_admin INTEGER DEFAULT 0,
+            role TEXT DEFAULT 'user',
+            custom_price_per_drink REAL DEFAULT NULL,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
     ''')
@@ -49,13 +51,44 @@ def init_db():
         )
     ''')
     
+    # Adjustment log table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS adjustment_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            billing_period_id INTEGER NOT NULL,
+            adjustment_amount INTEGER NOT NULL,
+            reason TEXT NOT NULL,
+            admin_user_id INTEGER NOT NULL,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            FOREIGN KEY (billing_period_id) REFERENCES billing_periods (id),
+            FOREIGN KEY (admin_user_id) REFERENCES users (id)
+        )
+    ''')
+    
+    # CSRF tokens table for security
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS csrf_tokens (
+            token TEXT PRIMARY KEY,
+            user_id INTEGER NOT NULL,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            expires_at TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    ''')
+    
     # Check if default admin exists, if not create one
     cursor.execute("SELECT COUNT(*) FROM users WHERE is_admin = 1")
     if cursor.fetchone()[0] == 0:
         cursor.execute(
-            "INSERT INTO users (name, pin, is_admin) VALUES (?, ?, ?)",
-            ("admin", "0000", 1)
+            "INSERT INTO users (name, pin, is_admin, role) VALUES (?, ?, ?, ?)",
+            ("admin", "0000", 1, "admin")
         )
+    
+    # Migrate existing users to have role field if needed
+    cursor.execute("UPDATE users SET role = 'admin' WHERE is_admin = 1 AND (role IS NULL OR role = '')")
+    cursor.execute("UPDATE users SET role = 'user' WHERE is_admin = 0 AND (role IS NULL OR role = '')")
     
     # Check if there's an open billing period, if not create one
     cursor.execute("SELECT COUNT(*) FROM billing_periods WHERE is_closed = 0")

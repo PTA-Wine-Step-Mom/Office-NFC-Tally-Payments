@@ -9,6 +9,7 @@
     <div class="card">
         <h3>Pricing</h3>
         <form method="POST" action="{{ url_for('admin_settings') }}" class="form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label for="default_price">Default Price per Drink:</label>
                 <input type="number" 
