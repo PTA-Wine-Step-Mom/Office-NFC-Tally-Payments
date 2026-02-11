@@ -16,7 +16,7 @@
                 <a href="{{ url_for('index') }}">Home</a>
                 <a href="{{ url_for('tap') }}" class="btn-primary">Tap Here</a>
                 {% if session.get('user_id') %}
-                    {% if session.get('is_admin') or g.user and g.user.is_admin %}
+                    {% if session.get('is_admin') or session.get('role') == 'admin' %}
                         <a href="{{ url_for('admin_dashboard') }}">Admin</a>
                     {% endif %}
                     <a href="{{ url_for('logout') }}">Logout</a>

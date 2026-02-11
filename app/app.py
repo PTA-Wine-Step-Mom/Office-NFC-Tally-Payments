@@ -8,6 +8,15 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)  # Long-lived cookie
 
+@app.before_request
+def sync_session_role():
+    """Ensure session admin flags are populated for logged-in users."""
+    if 'user_id' in session and (session.get('is_admin') is None or session.get('role') is None):
+        user = query_db('SELECT is_admin, role FROM users WHERE id = ?', [session['user_id']], one=True)
+        if user:
+            session['is_admin'] = bool(user['is_admin']) or user.get('role') == 'admin'
+            session['role'] = user.get('role') if 'role' in user.keys() else None
+
 @app.template_filter('format_date')
 def format_date(iso_string):
     """Format ISO date string to YYYY-MM-DD."""
@@ -108,6 +117,8 @@ def tap():
         # Set session if remember me is checked
         if remember:
             session['user_id'] = user['id']
+            session['is_admin'] = bool(user['is_admin']) or user.get('role') == 'admin'
+            session['role'] = user.get('role') if 'role' in user.keys() else None
             session.permanent = True
     
     # Get current billing period
@@ -155,6 +166,8 @@ def login():
         
         if user:
             session['user_id'] = user['id']
+            session['is_admin'] = bool(user['is_admin']) or user.get('role') == 'admin'
+            session['role'] = user.get('role') if 'role' in user.keys() else None
             if remember:
                 session.permanent = True
             return redirect(url_for('index'))
