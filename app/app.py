@@ -255,12 +255,17 @@ def edit_user(user_id):
         name = request.form.get('name')
         pin = request.form.get('pin')
         
-        if not name or not pin:
-            flash('Name and PIN are required', 'error')
+        if not name:
+            flash('Name is required', 'error')
         else:
             try:
-                execute_db('UPDATE users SET name = ?, pin = ? WHERE id = ?',
-                          [name, pin, user_id])
+                # Only update PIN if provided, otherwise just update name
+                if pin:
+                    execute_db('UPDATE users SET name = ?, pin = ? WHERE id = ?',
+                              [name, pin, user_id])
+                else:
+                    execute_db('UPDATE users SET name = ? WHERE id = ?',
+                              [name, user_id])
                 flash(f'User {name} updated successfully', 'success')
                 return redirect(url_for('admin_dashboard'))
             except Exception as e:

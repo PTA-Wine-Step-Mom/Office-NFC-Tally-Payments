@@ -1,7 +1,7 @@
 import sqlite3
 import secrets
 from functools import wraps
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from flask import g, session, redirect, url_for, request, abort
 
 DATABASE = 'drinks_tally.db'
@@ -65,10 +65,10 @@ def generate_csrf_token():
         return None
     
     token = secrets.token_urlsafe(32)
-    expires_at = (datetime.now() + timedelta(hours=1)).isoformat()
+    expires_at = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
     
     # Clean up expired tokens
-    execute_db('DELETE FROM csrf_tokens WHERE expires_at < ?', [datetime.now().isoformat()])
+    execute_db('DELETE FROM csrf_tokens WHERE expires_at < ?', [datetime.now(timezone.utc).isoformat()])
     
     # Store new token
     execute_db('INSERT INTO csrf_tokens (token, user_id, expires_at) VALUES (?, ?, ?)',
@@ -84,7 +84,7 @@ def verify_csrf_token(token):
     # Check if token exists and is valid
     result = query_db(
         'SELECT * FROM csrf_tokens WHERE token = ? AND user_id = ? AND expires_at > ?',
-        [token, session['user_id'], datetime.now().isoformat()],
+        [token, session['user_id'], datetime.now(timezone.utc).isoformat()],
         one=True
     )
     
