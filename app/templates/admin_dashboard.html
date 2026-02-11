@@ -11,7 +11,7 @@
     <div class="card">
         <h3>Current Billing Period</h3>
         <div class="period-info">
-            <p><strong>Started:</strong> {{ billing_period['start_date'][:10] }}</p>
+            <p><strong>Started:</strong> {{ billing_period['start_date']|format_date }}</p>
             <p><strong>Price per drink:</strong> ${{ "%.2f"|format(billing_period['price_per_drink']) }}</p>
         </div>
         

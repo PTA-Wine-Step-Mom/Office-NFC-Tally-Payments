@@ -66,7 +66,7 @@
     <div class="card">
         <h3>Manage Users</h3>
         {% if billing_period %}
-        <p class="text-small">Current billing period started: {{ billing_period['start_date'][:10] }}</p>
+        <p class="text-small">Current billing period started: {{ billing_period['start_date']|format_date }}</p>
         {% endif %}
 
         {% if user_stats %}
@@ -100,7 +100,7 @@
                         <div style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
                             <p style="margin: 0;"><strong>{{ adj.adjustment_amount|abs }} drinks {{ 'added' if adj.adjustment_amount > 0 else 'removed' }}</strong></p>
                             <p style="margin: 0; font-size: 0.875rem;">Reason: {{ adj.reason }}</p>
-                            <p style="margin: 0; font-size: 0.75rem; color: var(--text-muted);">By {{ adj.admin_name }} on {{ adj.created_at[:16] }}</p>
+                            <p style="margin: 0; font-size: 0.75rem; color: var(--text-muted);">By {{ adj.admin_name }} on {{ adj.created_at|format_datetime }}</p>
                         </div>
                         {% endfor %}
                     </div>

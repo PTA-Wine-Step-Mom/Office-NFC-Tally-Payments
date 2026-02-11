@@ -56,7 +56,11 @@ def admin_required(f):
     return decorated_function
 
 def generate_csrf_token():
-    """Generate a CSRF token for the current user session."""
+    """Generate a CSRF token for the current user session.
+    
+    Uses 32 bytes (256 bits of entropy) which exceeds OWASP's 
+    recommendation of 128 bits for CSRF token security.
+    """
     if 'user_id' not in session:
         return None
     

@@ -8,6 +8,24 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)  # Long-lived cookie
 
+@app.template_filter('format_date')
+def format_date(iso_string):
+    """Format ISO date string to YYYY-MM-DD."""
+    try:
+        dt = datetime.fromisoformat(iso_string.replace('Z', '+00:00'))
+        return dt.strftime('%Y-%m-%d')
+    except:
+        return iso_string[:10]  # Fallback to slice
+
+@app.template_filter('format_datetime')
+def format_datetime(iso_string):
+    """Format ISO datetime string to YYYY-MM-DD HH:MM."""
+    try:
+        dt = datetime.fromisoformat(iso_string.replace('Z', '+00:00'))
+        return dt.strftime('%Y-%m-%d %H:%M')
+    except:
+        return iso_string[:16]  # Fallback to slice
+
 @app.teardown_appcontext
 def close_connection(exception):
     """Close database connection at the end of each request."""
@@ -156,7 +174,7 @@ def logout():
 @admin_required
 def admin_dashboard():
     """Admin dashboard."""
-    users = query_db('SELECT * FROM users WHERE is_admin = 0 OR role = "user" ORDER BY name')
+    users = query_db('SELECT * FROM users WHERE role = "user" ORDER BY name')
     billing_period = query_db(
         'SELECT * FROM billing_periods WHERE is_closed = 0 ORDER BY id DESC LIMIT 1',
         one=True
@@ -292,7 +310,7 @@ def billing_report(period_id):
         return redirect(url_for('admin_dashboard'))
     
     # Get all users
-    users = query_db('SELECT * FROM users WHERE is_admin = 0 OR role = "user"')
+    users = query_db('SELECT * FROM users WHERE role = "user"')
     
     # Get per-user totals with custom pricing
     user_totals = []
@@ -496,7 +514,7 @@ def set_user_price(user_id):
 @admin_required
 def user_management():
     """User management page with all admin functions."""
-    users = query_db('SELECT * FROM users WHERE is_admin = 0 OR role = "user" ORDER BY name')
+    users = query_db('SELECT * FROM users WHERE role = "user" ORDER BY name')
     
     # Get current billing period
     billing_period = query_db(
