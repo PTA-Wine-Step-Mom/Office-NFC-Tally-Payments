@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Office Drink Tally{% endblock %}
+
+{% block content %}
+<div class="home-page">
+    {% if user %}
+        <div class="user-stats card">
+            <h2>Welcome, {{ user['name'] }}! 👋</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value">{{ drink_count }}</div>
+                    <div class="stat-label">Drinks This Period</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${{ "%.2f"|format(total_cost) }}</div>
+                    <div class="stat-label">Total Cost</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${{ "%.2f"|format(price_per_drink) }}</div>
+                    <div class="stat-label">Price Per Drink</div>
+                </div>
+            </div>
+            <div class="cta-section">
+                <a href="{{ url_for('tap') }}" class="btn btn-large btn-primary">
+                    🏷️ Tap to Log a Drink
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <div class="welcome-card card">
+            <h2>Welcome to Office Drink Tally! 🥤</h2>
+            <p>Track your office fridge drinks with a simple NFC tap.</p>
+            
+            <div class="instructions">
+                <h3>How it works:</h3>
+                <ol>
+                    <li>Tap your NFC tag on the reader</li>
+                    <li>Select your name and enter your PIN (first time only)</li>
+                    <li>Your drink is logged automatically!</li>
+                </ol>
+            </div>
+
+            <div class="cta-section">
+                <a href="{{ url_for('tap') }}" class="btn btn-large btn-primary">
+                    🏷️ Start Tapping
+                </a>
+                <a href="{{ url_for('login') }}" class="btn btn-large btn-secondary">
+                    🔐 Admin Login
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Edit User - Office Drink Tally{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+    <h2>Edit User: {{ user['name'] }}</h2>
+
+    <div class="card">
+        <form method="POST" action="{{ url_for('edit_user', user_id=user['id']) }}" class="form">
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" 
+                       name="name" 
+                       id="name" 
+                       required 
+                       class="form-control"
+                       value="{{ user['name'] }}"
+                       autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="pin">PIN:</label>
+                <input type="text" 
+                       name="pin" 
+                       id="pin" 
+                       required 
+                       class="form-control"
+                       pattern="[0-9]*"
+                       inputmode="numeric"
+                       maxlength="6"
+                       value="{{ user['pin'] }}">
+                <small>Use 4-6 digit numeric PIN</small>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Update User</button>
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Billing History - Office Drink Tally{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+    <h2>Billing History 📅</h2>
+
+    <div class="card">
+        {% if periods %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Period ID</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Price/Drink</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for period in periods %}
+                <tr>
+                    <td>#{{ period['id'] }}</td>
+                    <td>{{ period['start_date'][:10] }}</td>
+                    <td>{{ period['end_date'][:10] if period['end_date'] else 'Current' }}</td>
+                    <td>${{ "%.2f"|format(period['price_per_drink']) }}</td>
+                    <td>
+                        {% if period['is_closed'] %}
+                            <span class="badge badge-closed">Closed</span>
+                        {% else %}
+                            <span class="badge badge-open">Open</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('billing_report', period_id=period['id']) }}" class="btn btn-small">
+                            View Report
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No billing periods yet.</p>
+        {% endif %}
+    </div>
+
+    <div class="admin-actions">
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

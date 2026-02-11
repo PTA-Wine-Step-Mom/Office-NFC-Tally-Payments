@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Quick Tap - Office Drink Tally{% endblock %}
+
+{% block content %}
+<div class="tap-page">
+    <div class="card tap-card">
+        <h2>Hey {{ user['name'] }}! 👋</h2>
+        <p class="tap-subtitle">Ready to log a drink?</p>
+        
+        <form method="POST" action="{{ url_for('tap') }}" class="tap-form">
+            <div class="tap-icon">🥤</div>
+            <button type="submit" class="btn btn-tap">
+                Tap to Add Drink
+            </button>
+        </form>
+
+        <div class="tap-info">
+            <p>You're logged in and ready to go!</p>
+            <p class="text-small">Not you? <a href="{{ url_for('logout') }}">Switch user</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
