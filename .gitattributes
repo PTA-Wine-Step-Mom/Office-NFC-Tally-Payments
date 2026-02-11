@@ -1,0 +1,30 @@
+# Ensure shell scripts always use LF line endings (not CRLF)
+# This prevents Docker startup issues on Windows
+*.sh text eol=lf
+
+# Python files should use LF
+*.py text eol=lf
+
+# Docker files should use LF
+Dockerfile text eol=lf
+docker-compose.yml text eol=lf
+
+# Markdown and documentation
+*.md text eol=lf
+
+# Web files
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+
+# Config files
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+
+# Database files should be treated as binary
+*.db binary
+*.sqlite binary
+*.sqlite3 binary

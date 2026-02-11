@@ -217,6 +217,37 @@ docker-compose build --no-cache
 docker-compose up -d
 ```
 
+### Windows Line Ending Issues
+
+**Symptoms**: Container fails to start with errors like:
+- `: not found`
+- `python: can't open file '/app/app.py\r'`
+
+**Cause**: Git on Windows may convert Unix line endings (LF) to Windows line endings (CRLF), causing shell scripts to fail in Linux containers.
+
+**Solution**: This is now automatically fixed by:
+1. `.gitattributes` file enforces LF endings for shell scripts
+2. Dockerfile converts any CRLF to LF during build
+
+**Manual fix** (if needed):
+```bash
+# On Windows, before building:
+git config core.autocrlf false
+git rm --cached -r .
+git reset --hard
+
+# Or manually convert the file:
+dos2unix app/start.sh  # If you have dos2unix installed
+# Or in Git Bash:
+sed -i 's/\r$//' app/start.sh
+```
+
+Then rebuild the Docker image:
+```bash
+docker-compose build --no-cache
+docker-compose up -d
+```
+
 ### Can't Access from Other Devices
 
 1. Check firewall settings on Raspberry Pi:
