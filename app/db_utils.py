@@ -1,6 +1,8 @@
 import sqlite3
+import secrets
 from functools import wraps
-from flask import g, session, redirect, url_for, request
+from datetime import datetime, timedelta, timezone
+from flask import g, session, redirect, url_for, request, abort
 
 DATABASE = 'drinks_tally.db'
 
@@ -44,10 +46,64 @@ def admin_required(f):
         if 'user_id' not in session:
             return redirect(url_for('login', next=request.url))
         
-        user = query_db('SELECT is_admin FROM users WHERE id = ?', 
+        user = query_db('SELECT is_admin, role FROM users WHERE id = ?', 
                        [session['user_id']], one=True)
-        if not user or not user['is_admin']:
+        # Check both is_admin (legacy) and role (new) fields
+        # sqlite3.Row objects don't have .get() method, use bracket notation
+        role = user['role'] if user and 'role' in user.keys() else None
+        if not user or (not user['is_admin'] and role != 'admin'):
             return "Unauthorized", 403
         
+        return f(*args, **kwargs)
+    return decorated_function
+
+def generate_csrf_token():
+    """Generate a CSRF token for the current user session.
+    
+    Uses 32 bytes (256 bits of entropy) which exceeds OWASP's 
+    recommendation of 128 bits for CSRF token security.
+    """
+    if 'user_id' not in session:
+        return None
+    
+    token = secrets.token_urlsafe(32)
+    expires_at = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
+    
+    # Clean up expired tokens
+    execute_db('DELETE FROM csrf_tokens WHERE expires_at < ?', [datetime.now(timezone.utc).isoformat()])
+    
+    # Store new token
+    execute_db('INSERT INTO csrf_tokens (token, user_id, expires_at) VALUES (?, ?, ?)',
+              [token, session['user_id'], expires_at])
+    
+    return token
+
+def verify_csrf_token(token):
+    """Verify a CSRF token."""
+    if 'user_id' not in session or not token:
+        return False
+    
+    # Check if token exists and is valid
+    result = query_db(
+        'SELECT * FROM csrf_tokens WHERE token = ? AND user_id = ? AND expires_at > ?',
+        [token, session['user_id'], datetime.now(timezone.utc).isoformat()],
+        one=True
+    )
+    
+    if result:
+        # Delete used token (one-time use)
+        execute_db('DELETE FROM csrf_tokens WHERE token = ?', [token])
+        return True
+    
+    return False
+
+def csrf_protect(f):
+    """Decorator to protect routes with CSRF tokens."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if request.method == 'POST':
+            token = request.form.get('csrf_token')
+            if not verify_csrf_token(token):
+                abort(403, "Invalid or expired CSRF token")
         return f(*args, **kwargs)
     return decorated_function

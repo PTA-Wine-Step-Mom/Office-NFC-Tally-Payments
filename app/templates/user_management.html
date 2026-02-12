@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - Office Drink Tally{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+    <h2>👥 User Management</h2>
+
+    <!-- Global Settings Card -->
+    <div class="card">
+        <h3>Global Settings</h3>
+        <form method="POST" action="{{ url_for('admin_settings') }}" class="form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+                <label for="default_price">Default Price per Drink:</label>
+                <input type="number" 
+                       name="default_price" 
+                       id="default_price" 
+                       step="0.01" 
+                       min="0"
+                       class="form-control"
+                       value="{{ default_price }}"
+                       required>
+                <small class="text-small">This is the global default. Individual users can have custom prices.</small>
+            </div>
+            <button type="submit" class="btn btn-primary">Update Global Price</button>
+        </form>
+    </div>
+
+    <!-- Add New User Card -->
+    <div class="card">
+        <h3>➕ Add New User</h3>
+        <form method="POST" action="{{ url_for('add_user') }}" class="form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+                <label for="name">Username:</label>
+                <input type="text" 
+                       name="name" 
+                       id="name" 
+                       class="form-control"
+                       required
+                       autofocus>
+            </div>
+            <div class="form-group">
+                <label for="pin">PIN (4-6 digits):</label>
+                <input type="text" 
+                       name="pin" 
+                       id="pin" 
+                       class="form-control"
+                       pattern="[0-9]{4,6}"
+                       inputmode="numeric"
+                       maxlength="6"
+                       required>
+            </div>
+            <div class="form-group checkbox-group">
+                <label>
+                    <input type="checkbox" name="is_admin">
+                    Grant admin privileges
+                </label>
+            </div>
+            <button type="submit" class="btn btn-primary">Create User</button>
+        </form>
+    </div>
+
+    <!-- User Management Table -->
+    <div class="card">
+        <h3>Manage Users</h3>
+        {% if billing_period %}
+        <p class="text-small">Current billing period started: {{ billing_period['start_date']|format_date }}</p>
+        {% endif %}
+
+        {% if user_stats %}
+        <div class="user-list">
+            {% for stat in user_stats %}
+            <div class="user-card card" style="margin-bottom: 1rem; background-color: var(--bg-color);">
+                <div class="user-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <h4 style="margin: 0;">{{ stat.user['name'] }}</h4>
+                    <span class="badge badge-open">{{ stat.drink_count }} drinks</span>
+                </div>
+                
+                <div class="user-stats" style="margin: 0.5rem 0;">
+                    <p style="margin: 0.25rem 0;"><strong>Current Period:</strong> {{ stat.drink_count }} drinks = ${{ "%.2f"|format(stat.total_cost) }}</p>
+                    <p style="margin: 0.25rem 0;">
+                        <strong>Price:</strong> 
+                        ${{ "%.2f"|format(stat.price) }}
+                        {% if stat.user['custom_price_per_drink'] is not none %}
+                        <span class="badge" style="background-color: #fef3c7; color: #92400e;">Custom</span>
+                        {% else %}
+                        <span class="badge badge-open">Global</span>
+                        {% endif %}
+                    </p>
+                </div>
+
+                <!-- Adjustment History -->
+                {% if stat.adjustments %}
+                <details style="margin: 0.5rem 0;">
+                    <summary style="cursor: pointer; font-weight: 500;">📝 Adjustment History ({{ stat.adjustments|length }})</summary>
+                    <div style="margin-top: 0.5rem; padding: 0.5rem; background-color: var(--card-bg); border-radius: 0.25rem;">
+                        {% for adj in stat.adjustments %}
+                        <div style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                            <p style="margin: 0;"><strong>{{ adj.adjustment_amount|abs }} drinks {{ 'added' if adj.adjustment_amount > 0 else 'removed' }}</strong></p>
+                            <p style="margin: 0; font-size: 0.875rem;">Reason: {{ adj.reason }}</p>
+                            <p style="margin: 0; font-size: 0.75rem; color: var(--text-muted);">By {{ adj.admin_name }} on {{ adj.created_at|format_datetime }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </details>
+                {% endif %}
+
+                <!-- Management Actions -->
+                <div class="user-actions" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1rem;">
+                    <!-- Rename User -->
+                    <form method="POST" action="{{ url_for('edit_user', user_id=stat.user['id']) }}" style="grid-column: 1 / -1;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="text" 
+                                   name="name" 
+                                   class="form-control" 
+                                   value="{{ stat.user['name'] }}"
+                                   placeholder="New username"
+                                   style="flex: 1;">
+                            <button type="submit" class="btn btn-small btn-secondary">Rename</button>
+                        </div>
+                    </form>
+
+                    <!-- Reset PIN -->
+                    <details>
+                        <summary class="btn btn-small btn-secondary" style="cursor: pointer; list-style: none;">🔑 Reset PIN</summary>
+                        <form method="POST" action="{{ url_for('reset_user_pin', user_id=stat.user['id']) }}" style="margin-top: 0.5rem;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <div style="display: flex; gap: 0.5rem;">
+                                <input type="text" 
+                                       name="new_pin" 
+                                       class="form-control" 
+                                       placeholder="New PIN"
+                                       pattern="[0-9]{4,6}"
+                                       inputmode="numeric"
+                                       maxlength="6"
+                                       required
+                                       style="flex: 1;">
+                                <button type="submit" class="btn btn-small btn-primary">Reset</button>
+                            </div>
+                        </form>
+                    </details>
+
+                    <!-- Adjust Drinks -->
+                    <details>
+                        <summary class="btn btn-small btn-warning" style="cursor: pointer; list-style: none;">📊 Adjust Drinks</summary>
+                        <form method="POST" action="{{ url_for('adjust_user_drinks', user_id=stat.user['id']) }}" style="margin-top: 0.5rem;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <input type="number" 
+                                       name="adjustment" 
+                                       class="form-control" 
+                                       placeholder="±Amount"
+                                       required
+                                       style="width: 100%;">
+                                <input type="text" 
+                                       name="reason" 
+                                       class="form-control" 
+                                       placeholder="Reason (required)"
+                                       required
+                                       style="width: 100%;">
+                                <button type="submit" class="btn btn-small btn-primary" style="width: 100%;">Apply</button>
+                            </div>
+                        </form>
+                    </details>
+
+                    <!-- Set Custom Price -->
+                    <details style="grid-column: 1 / -1;">
+                        <summary class="btn btn-small btn-secondary" style="cursor: pointer; list-style: none; width: 100%;">💰 Custom Price</summary>
+                        <form method="POST" action="{{ url_for('set_user_price', user_id=stat.user['id']) }}" style="margin-top: 0.5rem;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <div style="display: flex; gap: 0.5rem;">
+                                <input type="number" 
+                                       name="custom_price" 
+                                       class="form-control" 
+                                       placeholder="Price (empty = global)"
+                                       step="0.01"
+                                       min="0"
+                                       value="{{ stat.user['custom_price_per_drink'] if stat.user['custom_price_per_drink'] is not none else '' }}"
+                                       style="flex: 1;">
+                                <button type="submit" class="btn btn-small btn-primary">Set</button>
+                            </div>
+                            <small class="text-small">Leave empty to use global default price</small>
+                        </form>
+                    </details>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p>No users yet. Add one above to get started!</p>
+        {% endif %}
+    </div>
+
+    <!-- Quick Links -->
+    <div class="admin-actions">
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

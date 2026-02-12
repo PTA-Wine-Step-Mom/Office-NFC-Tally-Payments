@@ -23,8 +23,8 @@
                 {% for period in periods %}
                 <tr>
                     <td>#{{ period['id'] }}</td>
-                    <td>{{ period['start_date'][:10] }}</td>
-                    <td>{{ period['end_date'][:10] if period['end_date'] else 'Current' }}</td>
+                    <td>{{ period['start_date']|format_date }}</td>
+                    <td>{{ period['end_date']|format_date if period['end_date'] else 'Current' }}</td>
                     <td>${{ "%.2f"|format(period['price_per_drink']) }}</td>
                     <td>
                         {% if period['is_closed'] %}

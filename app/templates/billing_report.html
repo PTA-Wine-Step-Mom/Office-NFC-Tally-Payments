@@ -9,9 +9,9 @@
     <div class="card">
         <h3>Period Details</h3>
         <div class="period-info">
-            <p><strong>Start Date:</strong> {{ period['start_date'][:10] }}</p>
+            <p><strong>Start Date:</strong> {{ period['start_date']|format_date }}</p>
             {% if period['end_date'] %}
-            <p><strong>End Date:</strong> {{ period['end_date'][:10] }}</p>
+            <p><strong>End Date:</strong> {{ period['end_date']|format_date }}</p>
             {% endif %}
             <p><strong>Price per Drink:</strong> ${{ "%.2f"|format(period['price_per_drink']) }}</p>
             <p><strong>Status:</strong> 

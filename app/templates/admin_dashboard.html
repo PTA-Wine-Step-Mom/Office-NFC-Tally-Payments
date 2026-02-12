@@ -11,7 +11,7 @@
     <div class="card">
         <h3>Current Billing Period</h3>
         <div class="period-info">
-            <p><strong>Started:</strong> {{ billing_period['start_date'][:10] }}</p>
+            <p><strong>Started:</strong> {{ billing_period['start_date']|format_date }}</p>
             <p><strong>Price per drink:</strong> ${{ "%.2f"|format(billing_period['price_per_drink']) }}</p>
         </div>
         
@@ -27,6 +27,7 @@
         </div>
 
         <form method="POST" action="{{ url_for('close_billing_period') }}" class="inline-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="price" value="{{ billing_period['price_per_drink'] }}">
             <button type="submit" class="btn btn-warning" onclick="return confirm('Close this billing period and start a new one?')">
                 Close Period & Generate Report
@@ -66,7 +67,10 @@
     <div class="card">
         <div class="card-header">
             <h3>User Management</h3>
-            <a href="{{ url_for('add_user') }}" class="btn btn-primary">+ Add User</a>
+            <div style="display: flex; gap: 0.5rem;">
+                <a href="{{ url_for('user_management') }}" class="btn btn-primary">👥 Manage Users</a>
+                <a href="{{ url_for('add_user') }}" class="btn btn-secondary">+ Add User</a>
+            </div>
         </div>
         
         {% if users %}

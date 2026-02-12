@@ -25,6 +25,11 @@
                 <a href="{{ url_for('tap') }}" class="btn btn-large btn-primary">
                     🏷️ Tap to Log a Drink
                 </a>
+                {% if session.get('is_admin') or session.get('role') == 'admin' %}
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-large btn-secondary">
+                    ⚙️ Admin Dashboard
+                </a>
+                {% endif %}
             </div>
         </div>
     {% else %}
